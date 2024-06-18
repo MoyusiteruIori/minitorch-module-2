@@ -22,7 +22,10 @@ def central_difference(f: Any, *vals: Any, arg: int = 0, epsilon: float = 1e-6) 
     Returns:
         An approximation of $f'_i(x_0, \ldots, x_{n-1})$
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    vals_left, vals_right = list(vals), list(vals)
+    vals_left[arg]  -= epsilon
+    vals_right[arg] += epsilon
+    return (f(*vals_right) - f(*vals_left)) / (2 * epsilon)
 
 
 variable_count = 1
@@ -60,7 +63,18 @@ def topological_sort(variable: Variable) -> Iterable[Variable]:
     Returns:
         Non-constant Variables in topological order starting from the right.
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    def _recursive_collect_vars(variable: Variable, ret: list[Variable]) -> None:
+        if variable.is_constant():
+            return
+        ret.append(variable)
+        if variable.is_leaf():
+            return
+        for v in variable.parents:
+            ret.append(v)
+            _recursive_collect_vars(v, ret)
+    ret: list[Variable] = []
+    _recursive_collect_vars(variable, ret)
+    return ret
 
 
 def backpropagate(variable: Variable, deriv: Any) -> None:
@@ -74,7 +88,17 @@ def backpropagate(variable: Variable, deriv: Any) -> None:
 
     No return. Should write to its results to the derivative values of each leaf through `accumulate_derivative`.
     """
-    raise NotImplementedError("Need to include this file from past assignment.")
+    def _recursive_update_grad(variable: Variable, d: float) -> None:
+        if variable.is_constant():
+            return
+        if variable.is_leaf():
+            variable.accumulate_derivative(d)
+            return
+        parents_derivs = variable.chain_rule(d)
+        for parent, deriv in parents_derivs:
+            _recursive_update_grad(parent, deriv)
+
+    _recursive_update_grad(variable, deriv)
 
 
 @dataclass
